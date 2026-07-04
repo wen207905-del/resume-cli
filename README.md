@@ -1,53 +1,54 @@
 # resume-cli
 
-简历 PDF 解析、结构化抽取、JD 匹配评分的命令行工具。
+简历 PDF 解析、结构化抽取、JD 匹配评分的命令行工具。默认对接 DeepSeek API。
 
 ## 安装
 
 ```bash
 pip install -e ".[dev]"
-cp .env.example .env   # 填入 DeepSeek API Key
+copy .env.example .env
 ```
 
-默认走 [DeepSeek](https://platform.deepseek.com) OpenAI 兼容接口，新用户有免费额度。Key 在控制台 → API Keys 申请。
+编辑 `.env`，把 `OPENAI_API_KEY` 换成你的 DeepSeek Key：  
+https://platform.deepseek.com/api_keys
 
-`.env` 示例：
-
-```env
-OPENAI_API_KEY=sk-你的deepseek-key
-OPENAI_BASE_URL=https://api.deepseek.com
-OPENAI_MODEL=deepseek-chat
-```
-
-## 用法
+## 使用流程
 
 ```bash
+# 1. 检查 API 是否通
+resume-cli check
+
+# 2. 解析 PDF 文本（不调 API）
 resume-cli parse resume.pdf
-resume-cli extract resume.pdf          # 需 .env 里配 DeepSeek Key
+
+# 3. 结构化抽取
+resume-cli extract resume.pdf -o resume.json
+
+# 4. JD 匹配评分
 resume-cli score resume.pdf --jd examples/jd.txt -o result.json
 ```
 
+没 Key 时加 `--mock` 看输出格式。
+
 | 命令 | 作用 |
 |------|------|
+| `check` | 检测 API 配置 |
 | `parse` | 提取 PDF 文本 |
-| `extract` | 抽取姓名、经历、技能等 JSON |
-| `score` | 按 JD 打分 |
+| `extract` | 抽取 JSON |
+| `score` | JD 打分 |
 
-`--mock` 不调用 API，本地看输出格式。`--output` / `-o` 写文件。
+## 配置说明
 
-## 评分
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `OPENAI_API_KEY` | - | DeepSeek API Key |
+| `OPENAI_BASE_URL` | `https://api.deepseek.com` | 接口地址 |
+| `OPENAI_MODEL` | `deepseek-chat` | 模型名 |
+| `API_TIMEOUT` | `60` | 请求超时（秒） |
+| `MAX_RESUME_CHARS` | `15000` | 简历文本截断长度 |
+| `JSON_MODE` | `true` | 强制 JSON 输出 |
 
-总分 100，四块：技能 30、经验 30、岗位相关 25、完整度 15。模型出分后还会跑一轮规则（关键词、必填字段、年限）。
-
-## 目录
-
-```
-resume_cli/     主代码
-tests/          pytest
-examples/jd.txt 示例 JD
-```
-
-## 测试 & Docker
+## 测试
 
 ```bash
 pytest -v

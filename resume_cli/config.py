@@ -18,24 +18,34 @@ class Settings:
     openai_model: str
     max_retries: int = 2
     temperature: float = 0.1
+    timeout: float = 60.0
+    max_resume_chars: int = 15000
+    json_mode: bool = True
 
 
 def get_settings() -> Settings:
     return Settings(
-        openai_api_key=os.getenv("OPENAI_API_KEY", ""),
-        openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.deepseek.com"),
-        openai_model=os.getenv("OPENAI_MODEL", "deepseek-chat"),
+        openai_api_key=os.getenv("OPENAI_API_KEY", "").strip(),
+        openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.deepseek.com").strip(),
+        openai_model=os.getenv("OPENAI_MODEL", "deepseek-chat").strip(),
         max_retries=int(os.getenv("OPENAI_MAX_RETRIES", "2")),
         temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.1")),
+        timeout=float(os.getenv("API_TIMEOUT", "60")),
+        max_resume_chars=int(os.getenv("MAX_RESUME_CHARS", "15000")),
+        json_mode=os.getenv("JSON_MODE", "true").lower() in ("1", "true", "yes"),
     )
 
 
 def ensure_api_key(settings: Settings, mock: bool) -> None:
     if mock:
         return
-    if not settings.openai_api_key:
+    key = settings.openai_api_key
+    if not key or key.startswith("sk-your-"):
         raise ValueError(
-            "未配置 OPENAI_API_KEY。请在 .env 中设置，或使用 --mock 模式运行。"
+            "未配置有效的 OPENAI_API_KEY。\n"
+            "请复制 .env.example 为 .env，填入 DeepSeek Key：\n"
+            "  https://platform.deepseek.com/api_keys\n"
+            "或使用 --mock 模式本地演示。"
         )
 
 

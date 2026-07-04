@@ -55,6 +55,26 @@ def _handle_errors(exc: Exception) -> None:
     raise typer.Exit(code=1)
 
 
+@app.command("check")
+def check_cmd(
+    mock: bool = typer.Option(False, "--mock", help="跳过 API 检测"),
+) -> None:
+    """检查 DeepSeek API 配置是否可用。"""
+    try:
+        settings = get_settings()
+        ensure_api_key(settings, mock)
+        typer.echo(f"模型: {settings.openai_model}")
+        typer.echo(f"接口: {settings.openai_base_url}")
+        if mock:
+            typer.secho("mock 模式，跳过 API 检测", fg=typer.colors.GREEN)
+            return
+        client = AIClient(settings)
+        reply = client.ping()
+        typer.secho(f"API 连接正常，回复: {reply.strip()}", fg=typer.colors.GREEN)
+    except Exception as exc:
+        _handle_errors(exc)
+
+
 @app.command("parse")
 def parse_cmd(
     pdf: Path = typer.Argument(..., help="PDF 简历路径", exists=False),
@@ -83,7 +103,7 @@ def extract_cmd(
         pdf_path = resolve_path(pdf)
         text = extract_text_from_pdf(pdf_path)
         client = AIClient(settings, mock=mock)
-        resume = extract_resume(text, client)
+        resume = extract_resume(text, client, settings)
         _write_output(resume.model_dump(), output)
     except Exception as exc:
         _handle_errors(exc)
@@ -106,7 +126,7 @@ def score_cmd(
 
         text = extract_text_from_pdf(pdf_path)
         client = AIClient(settings, mock=mock)
-        resume = extract_resume(text, client)
+        resume = extract_resume(text, client, settings)
         score = score_resume(resume, jd_content, client)
 
         result = ExtractResult(resume=resume, score=score).model_dump()

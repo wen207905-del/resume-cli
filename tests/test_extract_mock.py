@@ -79,3 +79,9 @@ def test_cli_parse(tmp_path: Path) -> None:
     data = json.loads(result.stdout)
     assert "text" in data
     assert data["char_count"] > 0
+
+
+def test_cli_check_mock() -> None:
+    result = runner.invoke(app, ["check", "--mock"])
+    assert result.exit_code == 0
+    assert "mock" in result.stdout
