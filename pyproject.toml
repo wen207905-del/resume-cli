@@ -14,10 +14,13 @@ dependencies = [
     "pydantic>=2.7.0",
     "PyMuPDF>=1.24.0",
     "python-dotenv>=1.0.0",
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0"]
+dev = ["pytest>=8.0.0", "httpx>=0.27.0"]
 
 [project.scripts]
 resume-cli = "resume_cli.main:main"

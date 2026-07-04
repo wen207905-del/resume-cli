@@ -135,6 +135,23 @@ def score_cmd(
         _handle_errors(exc)
 
 
+@app.command("serve")
+def serve_cmd(
+    host: str = typer.Option("127.0.0.1", help="监听地址"),
+    port: int = typer.Option(8000, help="端口"),
+    mock: bool = typer.Option(False, "--mock", help="模拟模式，不调用真实 API"),
+) -> None:
+    """启动 Web 平台（拖拽上传 PDF）。"""
+    import uvicorn
+
+    from resume_cli.web_app import create_app
+
+    typer.echo(f"Web 平台: http://{host}:{port}")
+    typer.echo("拖拽 PDF 上传，支持结构化抽取和 JD 评分")
+    app = create_app(mock=mock)
+    uvicorn.run(app, host=host, port=port)
+
+
 def main() -> None:
     app()
 

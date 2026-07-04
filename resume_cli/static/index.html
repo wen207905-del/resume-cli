@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume CLI · 简历解析平台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f4f1eb;
+      --surface: #fffcf7;
+      --ink: #1a1a18;
+      --muted: #6b6560;
+      --line: #ddd6cb;
+      --accent: #c45c3e;
+      --accent-soft: #f3e4de;
+      --green: #2d6a4f;
+      --green-soft: #e8f3ed;
+      --shadow: 0 12px 40px rgba(26, 26, 24, 0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Noto Sans SC", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(196, 92, 62, 0.06), transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(45, 106, 79, 0.06), transparent 40%);
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    header {
+      margin-bottom: 40px;
+    }
+
+    header h1 {
+      font-family: "Source Serif 4", serif;
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .dropzone {
+      border: 2px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: #faf8f4;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .dropzone .icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      opacity: 0.7;
+    }
+
+    .dropzone strong { display: block; margin-bottom: 6px; }
+
+    .dropzone span { color: var(--muted); font-size: 0.88rem; }
+
+    .file-info {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: var(--green-soft);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      color: var(--green);
+      display: none;
+    }
+
+    .file-info.show { display: block; }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      resize: vertical;
+      background: #faf8f4;
+      line-height: 1.6;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink);
+    }
+
+    .result-panel {
+      grid-column: 1 / -1;
+    }
+
+    .loading {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+
+    .loading.show { display: flex; }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--line);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error {
+      display: none;
+      padding: 12px 16px;
+      background: #fdecea;
+      color: #b42318;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+
+    .error.show { display: block; }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .score-item {
+      background: #faf8f4;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .score-item .val {
+      font-family: "Source Serif 4", serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .score-item .lbl {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .score-item.overall .val { color: var(--green); font-size: 2.4rem; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .tag {
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+    }
+
+    pre {
+      background: #1e1e1c;
+      color: #e8e6e3;
+      padding: 18px;
+      border-radius: 10px;
+      overflow: auto;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      max-height: 420px;
+    }
+
+    .section-title {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-size: 0.92rem;
+    }
+
+    ul { padding-left: 20px; line-height: 1.8; color: var(--muted); font-size: 0.9rem; }
+
+    #result-empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 40px;
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Resume CLI</h1>
+      <p>拖拽 PDF 简历 · AI 结构化抽取 · JD 匹配评分</p>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2>上传简历</h2>
+        <div class="dropzone" id="dropzone">
+          <div class="icon">📄</div>
+          <strong>拖拽 PDF 到此处</strong>
+          <span>或点击选择文件，最大 10MB</span>
+          <input type="file" id="fileInput" accept=".pdf" hidden />
+        </div>
+        <div class="file-info" id="fileInfo"></div>
+      </div>
+
+      <div class="card">
+        <h2>岗位描述 JD</h2>
+        <textarea id="jdInput" placeholder="粘贴岗位描述，用于匹配评分…">AI 全栈工程师
+
+职责：
+- Python 后端开发，对接大模型 API
+- 文档解析、结构化抽取
+- Agent 工具调用与流程编排
+
+要求：
+- 3 年以上 Python 开发经验
+- 熟悉 RAG、Agent 或大模型应用</textarea>
+        <div class="actions">
+          <button class="btn-secondary" id="btnExtract">结构化抽取</button>
+          <button class="btn-primary" id="btnScore">JD 匹配评分</button>
+        </div>
+      </div>
+
+      <div class="card result-panel">
+        <h2>分析结果</h2>
+        <div class="loading" id="loading"><div class="spinner"></div><span>正在分析，请稍候…</span></div>
+        <div class="error" id="error"></div>
+        <div id="result-empty">上传简历后点击「结构化抽取」或「JD 匹配评分」</div>
+        <div id="result" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedFile = null;
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const loading = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const resultEl = document.getElementById('result');
+    const resultEmpty = document.getElementById('result-empty');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) setFile(e.target.files[0]); });
+
+    function setFile(file) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        showError('请选择 PDF 文件');
+        return;
+      }
+      selectedFile = file;
+      fileInfo.textContent = `已选择：${file.name}（${(file.size / 1024).toFixed(1)} KB）`;
+      fileInfo.classList.add('show');
+      hideError();
+    }
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.classList.add('show');
+    }
+
+    function hideError() {
+      errorEl.classList.remove('show');
+    }
+
+    function setLoading(on) {
+      loading.classList.toggle('show', on);
+      document.getElementById('btnExtract').disabled = on;
+      document.getElementById('btnScore').disabled = on;
+    }
+
+    async function callApi(url) {
+      if (!selectedFile) { showError('请先上传 PDF 简历'); return; }
+      hideError();
+      setLoading(true);
+      resultEl.style.display = 'none';
+      resultEmpty.style.display = 'block';
+
+      const fd = new FormData();
+      fd.append('file', selectedFile);
+      if (url.includes('score')) fd.append('jd', document.getElementById('jdInput').value);
+
+      try {
+        const res = await fetch(url, { method: 'POST', body: fd });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.detail || '请求失败');
+        renderResult(json.data, url.includes('score'));
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderResult(data, isScore) {
+      resultEmpty.style.display = 'none';
+      resultEl.style.display = 'block';
+
+      if (isScore) {
+        const s = data.score;
+        const r = data.resume;
+        resultEl.innerHTML = `
+          <div class="score-grid">
+            <div class="score-item overall"><div class="val">${s.overall_score}</div><div class="lbl">总分</div></div>
+            <div class="score-item"><div class="val">${s.skill_score}</div><div class="lbl">技能 /30</div></div>
+            <div class="score-item"><div class="val">${s.experience_score}</div><div class="lbl">经验 /30</div></div>
+            <div class="score-item"><div class="val">${s.relevance_score}</div><div class="lbl">岗位 /25</div></div>
+            <div class="score-item"><div class="val">${s.completeness_score}</div><div class="lbl">完整 /15</div></div>
+          </div>
+          <p style="color:var(--muted);margin-bottom:16px">${s.summary || ''}</p>
+          <div class="section-title">技能栈</div>
+          <div class="tags">${(r.skills || []).map(sk => `<span class="tag">${sk}</span>`).join('')}</div>
+          <div class="section-title">风险点</div>
+          <ul>${(s.risk_points || []).map(x => `<li>${x}</li>`).join('') || '<li>无</li>'}</ul>
+          <div class="section-title">面试建议</div>
+          <ul>${(s.interview_suggestions || []).map(x => `<li>${x}</li>`).join('') || '<li>无</li>'}</ul>
+          <div class="section-title">完整 JSON</div>
+          <pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } else {
+        resultEl.innerHTML = `
+          <div class="section-title">${data.name || '未知'} · ${data.phone || ''} · ${data.email || ''}</div>
+          <div class="tags">${(data.skills || []).map(sk => `<span class="tag">${sk}</span>`).join('')}</div>
+          <div class="section-title">完整 JSON</div>
+          <pre>${JSON.stringify(data, null, 2)}</pre>`;
+      }
+    }
+
+    document.getElementById('btnExtract').addEventListener('click', () => callApi('/api/extract'));
+    document.getElementById('btnScore').addEventListener('click', () => callApi('/api/score'));
+  </script>
+</body>
+</html>
