@@ -23,8 +23,8 @@ class Settings:
 def get_settings() -> Settings:
     return Settings(
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),
-        openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-        openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+        openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.deepseek.com"),
+        openai_model=os.getenv("OPENAI_MODEL", "deepseek-chat"),
         max_retries=int(os.getenv("OPENAI_MAX_RETRIES", "2")),
         temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.1")),
     )

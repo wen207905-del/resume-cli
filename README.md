@@ -6,15 +6,25 @@
 
 ```bash
 pip install -e ".[dev]"
-cp .env.example .env   # 填入 OPENAI_API_KEY
+cp .env.example .env   # 填入 DeepSeek API Key
+```
+
+默认走 [DeepSeek](https://platform.deepseek.com) OpenAI 兼容接口，新用户有免费额度。Key 在控制台 → API Keys 申请。
+
+`.env` 示例：
+
+```env
+OPENAI_API_KEY=sk-你的deepseek-key
+OPENAI_BASE_URL=https://api.deepseek.com
+OPENAI_MODEL=deepseek-chat
 ```
 
 ## 用法
 
 ```bash
 resume-cli parse resume.pdf
-resume-cli extract resume.pdf --mock
-resume-cli score resume.pdf --jd examples/jd.txt --mock -o result.json
+resume-cli extract resume.pdf          # 需 .env 里配 DeepSeek Key
+resume-cli score resume.pdf --jd examples/jd.txt -o result.json
 ```
 
 | 命令 | 作用 |
