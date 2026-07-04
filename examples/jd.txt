@@ -1,0 +1,12 @@
+AI 全栈工程师
+
+职责：
+- Python 后端开发，对接大模型 API
+- 文档解析、结构化抽取
+- Agent 工具调用与流程编排
+
+要求：
+- 3 年以上 Python 开发经验
+- 熟悉 RAG、Agent 或大模型应用
+- 有 FastAPI / CLI 工具开发经验
+- 了解 Docker
